@@ -171,14 +171,15 @@ class cnn_trans:
         print(f'> RMSE: {np.mean(rmse_ensemble)} (+- {np.std(rmse_ensemble)}')
         print("--------------------------------------------")
 
-        spath = '/home/Hasegawa/Dthesis/water/output/cnn_trans/leadtime_'+np.str(self.gap-3)+'month'
+        spath = '/Docker/mnt/d/research/MtoD/output/cnn_trans/leadtime_'\
+                 +np.str(self.gap-3)+'month'
         os.makedirs(spath,exist_ok=True)
         sfile = os.path.join(spath,'trans'+self.sea+'.npy')
 #		np.save(sfile,cnn_ensemble)
 
 if __name__ == '__main__':
     print('Now Loading ...')
-    path = os.path.join(os.path.dirname(os.getcwd()),'output')
+    path = '/docker/mnt/d/research/MtoD/output'
     load = lambda x:np.load(os.path.join(path,x))
     norm = lambda x:((x-x.mean())/x.std())
 

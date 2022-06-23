@@ -120,33 +120,34 @@ class cnn_cmip:
 			print(f'> RMSE: {np.mean(rmse_ensemble)} (+- {np.std(rmse_ensemble)}')
 			print("-----------------------------------------------------")
 
-		outfile = '/home/Hasegawa/Dthesis/water/output/cnn_cmip/leadtime_'+np.str(self.gap-3)+'month/cmip_'+self.sea+'.npy'
+		outfile = '/docker/mnt/d/research/MtoD/output/cnn_cmip/leadtime_'\
+                   +np.str(self.gap-3)+'month/cmip_'+self.sea+'.npy'
 		np.save(outfile,[corr_ensemble,rmse_ensemble])
 		
 if __name__ == '__main__':
-	path = os.path.join(os.path.dirname(os.getcwd()),"output")
-	load = lambda x:np.load(os.path.join(path,x))
-	norm = lambda x:((x-x.mean())/x.std())
-	inp_cmip = load('inp_cmip17.npy')
-	pr_cmip = load('pr_cmip17.npy')
-	m_list = np.arange(5,11)
-	sea_list = ['may','jun','jul','aug','sep','oct']
-	gap_list = np.arange(4,7)
-	for (a,b) in zip (m_list,sea_list):
-		for c in gap_list:
-			if a == 5 and c == 6:
-				cnn = cnn_cmip(a,b,c)
-				print(a,b,c)
-				inp,out = cnn.cmipMon53(inp_cmip,pr_cmip)
-				inp2 = ma.masked_where(inp>9999,inp)
-				x_train,y_train,x_val,y_val = cnn.shuffle(inp2,out)
-				model = cnn.build_model()
-				cnn.train(model,x_train,y_train,x_val,y_val)
-			else:
-				cnn = cnn_cmip(a,b,c)
-				print(a,b,c)
-				inp,out = cnn.cmipMon(inp_cmip,pr_cmip)
-				inp2 = ma.masked_where(inp>9999,inp)
-				x_train,y_train,x_val,y_val = cnn.shuffle(inp2,out)
-				model = cnn.build_model()
-				cnn.train(model,x_train,y_train,x_val,y_val)	
+    path = '/docker/mnt/d/research/MtoD/output'
+    load = lambda x:np.load(os.path.join(path,x))
+    norm = lambda x:((x-x.mean())/x.std())
+    inp_cmip = load('inp_cmip17.npy')
+    pr_cmip = load('pr_cmip17.npy')
+    m_list = np.arange(5,11) # month range from May to Octobe
+    sea_list = ['may','jun','jul','aug','sep','oct']
+    gap_list = np.arange(4,7) # leadtime-gap for Jan (4=May,5=Jun,6=Jul
+    for (a,b) in zip (m_list,sea_list):
+        for c in gap_list:
+            if a == 5 and c == 6: # prediction of 3 month ahead March requires previous December
+                cnn = cnn_cmip(a,b,c)
+                print(a,b,c)
+                inp,out = cnn.cmipMon53(inp_cmip,pr_cmip)
+                inp2 = ma.masked_where(inp>9999,inp)
+                x_train,y_train,x_val,y_val = cnn.shuffle(inp2,out)
+                model = cnn.build_model()
+                cnn.train(model,x_train,y_train,x_val,y_val)
+            else:
+                cnn = cnn_cmip(a,b,c)
+                print(a,b,c)
+                inp,out = cnn.cmipMon(inp_cmip,pr_cmip)
+                inp2 = ma.masked_where(inp>9999,inp)
+                x_train,y_train,x_val,y_val = cnn.shuffle(inp2,out)
+                model = cnn.build_model()
+                cnn.train(model,x_train,y_train,x_val,y_val)	

@@ -15,7 +15,7 @@ class plot_gcm_test():
 		self.styear = 1993
 		self.enyear = 2016
 		self.xaxis = np.arange(self.styear,self.enyear)
-		self.root = os.path.join(os.path.dirname(os.getcwd()),'output')
+        self.root = '/docker/mnt/d/research/MtoD/output'+path
 	
 	def imp(self,path):
 		load = lambda x: np.load(os.path.join(self.root,x))
@@ -67,7 +67,7 @@ class plot_gcm_corr():
 		self.styear = 1993
 		self.enyear = 2016
 		self.xaxis = np.arange(self.styear,self.enyear)
-		self.root = os.path.join(os.path.dirname(os.getcwd()),'output')
+        self.root = '/docker/mnt/d/research/MtoD/output'+path
 	
 	def imp(self):
 		load = lambda x: np.load(os.path.join(self.root,x))
@@ -122,7 +122,7 @@ class plot_cnn_cmip():
 		self.styear = 1993
 		self.enyear = 2016
 		self.xaxis = np.arange(self.styear,self.enyear)
-		self.root = os.path.join(os.path.dirname(os.getcwd()),'output')
+        self.root = '/docker/mnt/d/research/MtoD/output'+path
 	
 	def imp(self):
 		load = lambda x: np.load(os.path.join(self.root,x))
@@ -164,7 +164,7 @@ class plot_cnn_trans():
 		self.styear = 1993
 		self.enyear = 2016
 		self.xaxis = np.arange(self.styear,self.enyear)
-		self.root = os.path.join(os.path.dirname(os.getcwd()),'output')
+        self.root = '/docker/mnt/d/research/MtoD/output'+path
 		self.x = np.arange(1,7)
 		self.y = np.arange(-0.1,0.9,0.1)
 		self.model_list = ['ECMWF','CNN','GFDL']

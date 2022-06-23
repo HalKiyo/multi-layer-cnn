@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 class aphro():
-	def __init__(self):
+    def __init__(self):
 		self.month = calendar.month_abbr[1:]
 		self.resample_size = 50
 		self.repeats = 10000
@@ -14,7 +14,7 @@ class aphro():
 		self.uplim = 0.975
 
 	def imp(self):
-		oppath = os.path.join(os.path.dirname(os.getcwd()),'output/aphro_month_1951-2015.npy')
+        oppath = '/docker/mnt/d/research/MtoD/output/aphro_month_1951-2015.npy'
 		aphro = np.load(oppath)
 		aphro = aphro.reshape(65,12).T
 		return aphro
@@ -44,7 +44,7 @@ class aphro():
 			en = DF.loc[mon]
 			RE_MEAN_MEAN,RE_CONF = self.bts(en)
 			sfile.append([RE_CONF[0],RE_MEAN_MEAN,RE_CONF[1]])
-		spath = '/home/Hasegawa/Dthesis/water/output/'+model+'/bootstrap_'+model+'.npy'
+		spath = '/docker/mnt/d/research/MtoD/output/'+model+'/bootstrap_'+model+'.npy'
 		np.save(spath,sfile)
 		return sfile
 
@@ -69,7 +69,7 @@ class gfdl():
 		self.repeats = 10000
 		self.lowlim = 0.025
 		self.uplim = 0.975
-		self.root = os.path.join(os.path.dirname(os.getcwd()),'output')
+        self.root = '/docker/mnt/d/research/MtoD/output'
 		
 	def imp(self,lead,mon):
 		oppath = os.path.join(self.root,self.model+'/'+lead)
@@ -92,7 +92,7 @@ class gfdl():
 			re_mean.append(np.mean(re))
 		re_mean_mean = np.mean(re_mean)
 		re_conf = np.percentile(re_mean,conf_prob*100)
-		return re_mean_mean,re_conf
+	    return re_mean_mean,re_conf
 
 	def exe(self):
 		for mon in self.month_list:
@@ -120,20 +120,20 @@ class bts():
 		self.uplim = 0.975
 
 	def imp_ecm(self,path):
-		oppath = os.path.join(os.path.dirname(os.getcwd()),'output/ECMWF/'+path)
+        oppath = '/docker/mnt/d/research/MtoD/output/ECMWF/'+path
 		load = lambda x: np.load(os.path.join(oppath,x))
 		dic = load('en_'+self.target+'_1993_2015.npy')
 		return dic
 
 	def imp_trans(self,path):
-		oppath = os.path.join(os.path.dirname(os.getcwd()),'output/cnn_trans/'+path)
+        oppath = '/docker/mnt/d/research/MtoD/output/cnn_trans/'+path
 		load = lambda x: np.load(os.path.join(oppath,x))
 		trans = load('cmip_'+self.target+'.npy')
 		dic = trans.reshape(20,23).T
 		return dic
 
 	def imp_trans53(self,path):
-		oppath = os.path.join(os.path.dirname(os.getcwd()),'output/cnn_trans/'+path)
+        oppath = '/docker/mnt/d/research/MtoD/output/cnn_trans/'+path
 		load = lambda x: np.load(os.path.join(oppath,x))
 		dic = load('cmip_'+self.target+'.npy')
 		dic = dic.reshape(20,22).T
@@ -182,7 +182,8 @@ if __name__ == '__main__':
 				en = DF_NORM.loc[c]
 				RE_MEAN_MEAN,RE_CONF = BTS.bootstrap(en)
 				sfile.append([RE_CONF[0],RE_MEAN_MEAN,RE_CONF[1]])
-			spath = '/home/Hasegawa/Dthesis/water/output/'+model+'/'+b+'/bootstrap_'+a+'.npy'
+			spath = '/docker/mnt/d/research/MtoD/output/'\
+                     +model+'/'+b+'/bootstrap_'+a+'.npy'
 			print(spath)
 			np.save(spath,sfile)
 			
