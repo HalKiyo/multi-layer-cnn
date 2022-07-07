@@ -7,35 +7,11 @@ import seaborn as sns
 import tensorflow as tf
 from tensorflow.keras import datasets, layers, models, optimizers, losses
 
-def main():
-    # import data
-    path = '/docker/mnt/d/research/MtoD/output'
-    load = lambda x:np.load(os.path.join(path,x))
-    inp_cmip = load('inp_cmip17.npy')
-    pr_cmip = load('pr_cmip17.npy')
-
-    # forecast target setting
-    cnn = cnn_cmip(8, 'aug', 4) # 1 month forecast for August using May, Jun, July env
-
-    # Load data
-    inp, out = cnn.cmipMon(inp_cmip, pr_cmip) # inp(2448, 24, 72, 6), out(2448,)
-    out_bnds, out_class = cnn.EFD(out) # out_bnds(48, 2), out_class(2448,)
-
-    # plot histgram
-    cnn.draw_hist(out, out_bnds)
-    exit()
-
-    # Preprocess train and validation data
-    inp_masked = ma.masked_where(inp>9999, inp)
-    x_train, y_train, x_val, y_val = cnn.shuffle(inp_masked, out_class)
-    y_train_bn, y_val_bn = cnn.class_to_onehot(y_train, y_val)
-
-    # Train and validate model
-    model = cnn.build_model()
-    cnn.train(model, x_train, y_train_bn, x_val, y_val_bn)
 
 class cnn_cmip:
     def __init__(self, m, sea, gap):
+        self.save_flag = True
+
         self.m = m # month range from 5 to 10(May to October)
         self.sea = sea # ['may','jun','jul','aug','sep','oct'] strig list for filename
         self.gap = gap # leadtime-gap ranging from 4 to 6(1month, 2month, 3month ahead
@@ -54,14 +30,14 @@ class cnn_cmip:
         self.nb_class = int(48/mult)
 
         self.height, self.width, self.channels = 24, 72, 6 # shape of input images
-        self.C, self.H = 64, 64 # hidden layer sizes
-        self.vsample = 200 # number of validation samples
-        self.epochs = 25 # number of epochs
+        self.C, self.H = 30, 30 # hidden layer sizes
+        self.vsample = 400 # number of validation samples
+        self.epochs = 30 # number of epochs
         self.batch_size = 200 # number of batch_size
         self.learnrate = 0.00001 # learnrate of optimizers("RMSprop")
         self.optimizer = tf.keras.optimizers.Adam(self.learnrate)
         self.loss_function = 'categorical_crossentropy' # loss function
-        self.metrics = 'accuracy' # mean absolute error for validation metric
+        self.metrics = 'categorical_accuracy' # metrics
         self.activate_function = 'relu' # activation function
 
     def norm(self, x):
@@ -157,11 +133,10 @@ class cnn_cmip:
                   batch_size=self.batch_size,
                   verbose=2)
 
+        loss, acc = model.evaluate(x_val,  y_val, verbose=2)
         pred = model.predict(x_val)
-        print(pred)
-        exit()
-
-        model.evaluate(x_val,  y_val, verbose=2)
+        if self.save_flag is True:
+            model.save_weights(f'./result_cnn_class_cmip/weights/{round(acc, 4)}.h5')
 
         return pred
 
@@ -181,7 +156,7 @@ class cnn_cmip:
 
         plt.show()
 
-    def draw_val(self, val, data, class_bnds):
+    def draw_val(self, val_pred, val_label, data, class_bnds):
         plt.style.use('fivethirtyeight')
 
         fig = plt.figure()
@@ -189,13 +164,77 @@ class cnn_cmip:
         ax = plt.subplot()
         ax.hist(data, bins=100, alpha=.5, color='darkcyan')
 
+        val_list = []
         for i in class_bnds:
+            val_list.append(i[0])
             ax.axvline(i[0], ymin=0, ymax=self.batch_size*self.nb_class, alpha=.8, color='salmon')
+        ax.axvline(class_bnds[-1, 1], ymin=0, ymax=self.batch_size*self.nb_class, alpha=.8, color='salmon')
 
-        ax2 = ax.twinx()
-        sns.kdeplot(data=data, ax=ax2, color='sandybrown')
+        val_true = []
+        val_false = []
+        for i, j in zip(val_pred, val_label):
+            if np.argmax(i) == np.argmax(j):
+                val_true.append( val_list[np.argmax(i)] )
+            else:
+                val_false.append( val_list[np.argmax(i)] )
 
-        plt.show()
+        width, linewidth, align = 0.4, 0, 'edge'
+
+        val_tcount = [ val_true.count(j) for j in val_list ]
+        ax.bar(val_list, val_tcount,
+               color='darkslategray', width=width, linewidth=linewidth, align=align)
+
+        val_fcount = [ val_false.count(j) for j in val_list ]
+        ax.bar(val_list, val_fcount,
+               color='orange', bottom=val_tcount, 
+               width=width, linewidth=linewidth, align=align, alpha=.8)
+
+        #ax2 = ax.twinx()
+        #sns.kdeplot(data=data, ax=ax2, color='sandybrown')
+
+        m = tf.keras.metrics.CategoricalAccuracy()
+        m.update_state(val_pred, val_label)
+        acc = m.result().numpy()
+
+        if self.save_flag is True:
+            plt.savefig('./result_cnn_class_cmip/fig/{:.4f}.jpg'.format(acc))
+
+        return acc
+
+def main():
+    # import data
+    path = '/docker/mnt/d/research/MtoD/output'
+    load = lambda x:np.load(os.path.join(path,x))
+    inp_cmip = load('inp_cmip17.npy')
+    pr_cmip = load('pr_cmip17.npy')
+
+    # forecast target setting
+    cnn = cnn_cmip(8, 'aug', 4) # 1 month forecast for August using May, Jun, July env
+
+    # Load data
+    inp, out = cnn.cmipMon(inp_cmip, pr_cmip) # inp(2448, 24, 72, 6), out(2448,)
+    out_bnds, out_class = cnn.EFD(out) # out_bnds(48, 2), out_class(2448,)
+
+    # Preprocess train and validation data
+    inp_masked = ma.masked_where(inp>9999, inp)
+    x_train, y_train, x_val, y_val = cnn.shuffle(inp_masked, out_class)
+    y_train_bn, y_val_bn = cnn.class_to_onehot(y_train, y_val)
+
+    # Train and validate model
+    model = cnn.build_model()
+    pred = cnn.train(model, x_train, y_train_bn, x_val, y_val_bn)
+
+    dic = {'x_train': x_train, 'y_train': y_train, 'y_train_bn': y_train_bn, 
+            'x_val': x_val, 'y_val': y_val, 'y_val_bn': y_val_bn}
+
+    # plot histgram
+    acc = cnn.draw_val(pred, y_val_bn, out, out_bnds)
+
+    # Save training data as dictionary
+    if cnn.save_flag is True:
+        np.savez('./result_cnn_class_cmip/input/{:.4f}.npz'.format(acc), 
+                 x_train=x_train, y_train=y_train, y_train_bn=y_train_bn,
+                 x_val=x_val, y_val=y_val, y_val_bn=y_val_bn)
 
 
 if __name__ == '__main__':
