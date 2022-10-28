@@ -58,6 +58,7 @@ class cnn_cmip:
         return inp, out
 
     def EFD(self, out):
+        """ EFD(equal frequency discretization 等頻度区間)"""
         out_sorted = np.sort(out) # shape = (2448,)
         out_bnd = [ out_sorted[i] for i in range(0, len(out_sorted), self.batch_sample) ]
 
@@ -133,10 +134,15 @@ class cnn_cmip:
                   batch_size=self.batch_size,
                   verbose=2)
 
-        loss, acc = model.evaluate(x_val,  y_val, verbose=2)
+        loss, _ = model.evaluate(x_val,  y_val, verbose=2)
         pred = model.predict(x_val)
+
+        m = tf.keras.metrics.CategoricalAccuracy()
+        m.update_state(pred, y_val)
+        acc = m.result().numpy()
+
         if self.save_flag is True:
-            model.save_weights(f'./result_cnn_class_cmip/weights/{round(acc, 4)}.h5')
+            model.save_weights('./result_cnn_class_cmip/weights/{:.4f}.h5'.format(acc))
 
         return pred
 
@@ -219,13 +225,11 @@ def main():
     inp_masked = ma.masked_where(inp>9999, inp)
     x_train, y_train, x_val, y_val = cnn.shuffle(inp_masked, out_class)
     y_train_bn, y_val_bn = cnn.class_to_onehot(y_train, y_val)
+    x_val_masked = ma.masked_where(x_val>9999, x_val)
 
     # Train and validate model
     model = cnn.build_model()
-    pred = cnn.train(model, x_train, y_train_bn, x_val, y_val_bn)
-
-    dic = {'x_train': x_train, 'y_train': y_train, 'y_train_bn': y_train_bn, 
-            'x_val': x_val, 'y_val': y_val, 'y_val_bn': y_val_bn}
+    pred = cnn.train(model, x_train, y_train_bn, x_val_masked, y_val_bn)
 
     # plot histgram
     acc = cnn.draw_val(pred, y_val_bn, out, out_bnds)
@@ -234,7 +238,7 @@ def main():
     if cnn.save_flag is True:
         np.savez('./result_cnn_class_cmip/input/{:.4f}.npz'.format(acc), 
                  x_train=x_train, y_train=y_train, y_train_bn=y_train_bn,
-                 x_val=x_val, y_val=y_val, y_val_bn=y_val_bn)
+                 x_val=x_val_masked, y_val=y_val, y_val_bn=y_val_bn)
 
 
 if __name__ == '__main__':

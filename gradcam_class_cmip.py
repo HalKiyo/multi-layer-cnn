@@ -15,7 +15,7 @@ import numpy.ma as ma
 
 disable_eager_execution()
 
-from cnn_cmip import cnn_cmip
+from cnn_class_cmip import cnn_cmip
 
 def target_category_loss(x, category_index, nb_classes):
     return tf.multiply(x, K.one_hot([category_index], nb_classes))
@@ -224,11 +224,11 @@ def grad_cam(input_model, image, category_index, layer_name):
 
 def main():
     # setting paths
-    acc = '0.5500' # accuracy of cnn_cmip run
-    val_index = 6 # index of validation sample for drawing gradcam image
-    path = '/docker/home/hasegawa/docker-gpu/multi-layer-cnn/result_cnn_cmip/input/'+acc+'.npz'
-    weights_path = '/docker/home/hasegawa/docker-gpu/multi-layer-cnn/result_cnn_cmip/weights/'+acc+'.h5'
-    save_path = '/docker/home/hasegawa/docker-gpu/multi-layer-cnn/result_gradcam_cmip/fig/'+acc+f'_val{val_index}.jpg'
+    acc = '0.5500'
+    val_index = 6
+    path = '/docker/home/hasegawa/docker-gpu/multi-layer-cnn/result_cnn_class_cmip/input/'+acc+'.npz'
+    weights_path = '/docker/home/hasegawa/docker-gpu/multi-layer-cnn/result_cnn_class_cmip/weights/'+acc+'.h5'
+    save_path = '/docker/home/hasegawa/docker-gpu/multi-layer-cnn/result_gradcam_class_cmip/fig/'+acc+f'_val{val_index}.jpg'
 
     # 1. 入力画像の読み込み
     # 入力画像を変換する場合はこちらを変換
