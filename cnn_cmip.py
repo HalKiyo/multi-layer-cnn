@@ -10,7 +10,7 @@ from tensorflow.keras import datasets, layers,models,optimizers, losses
 
 class cnn_cmip:
     def __init__(self,m,sea,gap):
-        self.save_flag = True # if you want to save
+        self.save_flag = False # if you want to save, turn it on
 
         self.m = m
         self.sea = sea
