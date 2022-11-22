@@ -132,7 +132,7 @@ def snapshot():
     # setting paths
     save_flag = False
     index = 50 # different index = different test data = different heatmap
-    corr = '0.7576' # correlation of cnn_cmip run
+    corr = '0.7064' # correlation of cnn_cmip run
     path = '/docker/home/hasegawa/docker-gpu/multi-layer-cnn/result_cnn_cmip/input/'+corr+'.npz'
     weights_path = '/docker/home/hasegawa/docker-gpu/multi-layer-cnn/result_cnn_cmip/weights/'+corr+'.h5'
     save_path = '/docker/home/hasegawa/docker-gpu/multi-layer-cnn/result_gradcam_cmip/fig/'+corr+'_'+np.str(index)+'.jpg'
@@ -167,9 +167,9 @@ def snapshot():
 
 def saliency_mean():
     # setting paths
-    save_flag = False
+    save_flag = True
 
-    corr = '0.7576' # correlation of cnn_cmip run
+    corr = '0.7904' # correlation of cnn_cmip run
     path = '/docker/home/hasegawa/docker-gpu/multi-layer-cnn/result_cnn_cmip/input/'+corr+'.npz'
     weights_path = '/docker/home/hasegawa/docker-gpu/multi-layer-cnn/result_cnn_cmip/weights/'+corr+'.h5'
     save_path = '/docker/home/hasegawa/docker-gpu/multi-layer-cnn/result_gradcam_cmip/fig/'+corr+'_'+'saliency_mean'+'.jpg'
