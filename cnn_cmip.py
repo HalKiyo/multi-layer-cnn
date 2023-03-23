@@ -5,8 +5,7 @@ import numpy.ma as ma
 import tensorflow as tf
 from tensorflow import keras 
 import matplotlib.pyplot as plt
-import tensorflow as tf
-from tensorflow.keras import datasets, layers,models,optimizers, losses
+from tensorflow.keras import layers,models,optimizers, losses
 
 class cnn_cmip:
     def __init__(self,m,sea,gap):
