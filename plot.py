@@ -15,8 +15,8 @@ class plot_gcm_test():
 		self.styear = 1993
 		self.enyear = 2016
 		self.xaxis = np.arange(self.styear,self.enyear)
-        self.root = '/docker/mnt/d/research/MtoD/output'+path
-	
+		self.root = '/docker/mnt/d/research/MtoD/output'	
+
 	def imp(self,path):
 		load = lambda x: np.load(os.path.join(self.root,x))
 		data = load(path)
@@ -58,16 +58,14 @@ class plot_gcm_test():
 		spath = os.path.join(os.path.dirname(self.root),'pic/gcm_test/' + self.ldt)
 		os.makedirs(spath,exist_ok=True)
 		sfile = os.path.join(spath,'gcm_test_'+self.month+'.png')
-#		plt.savefig(sfile)
+		plt.savefig(sfile)
 		
 class plot_gcm_corr():
 	def __init__(self):
-		self.month_list = ['may','jun','jul','aug','sep','oct']
-		self.ldt_list = ['leadtime_1month','leadtime_2month','leadtime_3month']
 		self.styear = 1993
 		self.enyear = 2016
 		self.xaxis = np.arange(self.styear,self.enyear)
-        self.root = '/docker/mnt/d/research/MtoD/output'+path
+		self.root = '/docker/mnt/d/research/MtoD/output'+path	
 	
 	def imp(self):
 		load = lambda x: np.load(os.path.join(self.root,x))
@@ -122,7 +120,7 @@ class plot_cnn_cmip():
 		self.styear = 1993
 		self.enyear = 2016
 		self.xaxis = np.arange(self.styear,self.enyear)
-        self.root = '/docker/mnt/d/research/MtoD/output'+path
+		self.root = '/docker/mnt/d/research/MtoD/output'+path	
 	
 	def imp(self):
 		load = lambda x: np.load(os.path.join(self.root,x))
@@ -164,7 +162,7 @@ class plot_cnn_trans():
 		self.styear = 1993
 		self.enyear = 2016
 		self.xaxis = np.arange(self.styear,self.enyear)
-        self.root = '/docker/mnt/d/research/MtoD/output'+path
+		self.root = '/docker/mnt/d/research/MtoD/output'	
 		self.x = np.arange(1,7)
 		self.y = np.arange(-0.1,0.9,0.1)
 		self.model_list = ['ECMWF','CNN','GFDL']
@@ -248,13 +246,13 @@ class plot_cnn_trans():
 		cnn0,cnn1,cnn2 = cnn0[p],cnn1[p],cnn2[p]
 		r_ecm = np.corrcoef(ecm1,aphro)[0,1]
 		r_cnn = np.corrcoef(cnn1,aphro)[0,1]
-		fig,ax = plt.subplots(figsize=(12,8))
-		ax.plot(self.xaxis,ecm1,marker='o',label='ecmwf('+np.str(round(r_ecm,2))+')',color='b')
+		fig,ax = plt.subplots(figsize=(20,10))
+		ax.plot(self.xaxis,ecm1,marker='o',label=f"numerical weather prediction({(round(r_ecm,2))})",color='b')
 		ax.fill_between(self.xaxis,ecm0,ecm2,alpha=.3)
-		ax.plot(self.xaxis,cnn1,marker='^',label='CNN('+np.str(round(r_cnn,2))+')',color='r')
+		ax.plot(self.xaxis,cnn1,marker='^',label=f"deep learning({(round(r_cnn,2))})",color='r')
 		ax.fill_between(self.xaxis,cnn0,cnn2,alpha =.3)
 		ax.plot(self.xaxis,aphro,marker='s',label='observation',color='k')	
-		ax.legend(loc=0, prop={'size':30})
+		ax.legend(loc='best', bbox_to_anchor=(1, 0.5), prop={'size':24})
 		ax.tick_params(axis='x', labelsize='25')
 		ax.tick_params(axis='y', labelsize='25')
 		plt.tight_layout()
@@ -267,12 +265,11 @@ class plot_cnn_trans():
 		for l in range(3):
 			self.multibar(l)
 			print(f'leadtime is {l}')
-			#for m in range(6):
-				#self.trans_test(m,l)
-				#print(f'leadtime is {l},  month is {m}')
+			for m in range(6):
+				self.trans_test(m,l)
+				print(f'leadtime is {l},  month is {m}')
 		
 if __name__ == '__main__':
-
 	#execute class plot_cnn_trans()
 	PLOT = plot_cnn_trans()
 	PLOT.exec()
@@ -285,7 +282,6 @@ if __name__ == '__main__':
 	#execute class plot_gcm_corr()
 	PLOT = plot_gcm_corr()
 	PLOT.gcm_corr()
-
 
 	#execute class plot_gcm_test() 
 	for i in range(6):
