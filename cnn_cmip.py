@@ -9,16 +9,17 @@ OUTPUT_DIR = '/home/Hasegawa/Dthesis/water/output/cnn_cmip'
 class cnn_cmip(CnnBase):
     ensemble = 5
 
-    def train(self, model, x_train, y_train, x_val, y_val):
+    def train(self, x_train, y_train, x_val, y_val):
         cnn_ensemble = []
         corr_ensemble = []
         rmse_ensemble = []
 
-        # The same model object keeps training across ensemble members (original behavior)
         for i in range(self.ensemble):
 
             print('----------------------------------------------------------')
             print(f'Training for ensemble {i} ...')
+            # Build a fresh model per member so that the members are independent
+            model = self.build_model()
 
             model.fit(x_train, y_train,
                       epochs=self.epochs,
@@ -52,5 +53,4 @@ if __name__ == '__main__':
             inp, out = cnn.cmipMon(inp_cmip, pr_cmip)
         inp2 = ma.masked_where(inp > 9999, inp)
         x_train, y_train, x_val, y_val = cnn.shuffle(inp2, out)
-        model = cnn.build_model()
-        cnn.train(model, x_train, y_train, x_val, y_val)
+        cnn.train(x_train, y_train, x_val, y_val)
