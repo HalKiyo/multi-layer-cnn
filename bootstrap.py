@@ -3,7 +3,20 @@ import calendar
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
+
+OUTPUT_ROOT = '/home/Hasegawa/Dthesis/water/output'
+MONTH_LIST = ['may','jun','jul','aug','sep','oct']
+LDT_LIST = ['leadtime_1month','leadtime_2month','leadtime_3month']
+
+
+def bootstrap_mean(x,resample_size,repeats,lowlim,uplim):
+	# Draw all resamples in one call. This consumes the random stream exactly like
+	# the original loop of repeats calls of np.random.choice, so results are identical.
+	conf_prob = np.array([lowlim,uplim])
+	re_mean = np.random.choice(x,(repeats,resample_size),replace=True).mean(axis=1)
+	re_mean_mean = np.mean(re_mean)
+	re_conf = np.percentile(re_mean,conf_prob*100)
+	return re_mean_mean,re_conf
 
 class aphro():
 	def __init__(self):
@@ -25,15 +38,7 @@ class aphro():
 		return df
 	
 	def bts(self,x):
-		conf_prob = np.array([self.lowlim,self.uplim])
-		re_mean = []
-		for i in range(self.repeats):
-			re = np.random.choice(x,self.resample_size,replace=True)
-			re_mean.append(np.mean(re))
-		re_mean_mean = np.mean(re_mean)
-		re_mean_std = np.std(re_mean)
-		re_conf = np.percentile(re_mean,conf_prob*100)
-		return re_mean_mean,re_conf
+		return bootstrap_mean(x,self.resample_size,self.repeats,self.lowlim,self.uplim)
 	
 	def exe(self):
 		model = 'aphro'
@@ -44,7 +49,7 @@ class aphro():
 			en = DF.loc[mon]
 			RE_MEAN_MEAN,RE_CONF = self.bts(en)
 			sfile.append([RE_CONF[0],RE_MEAN_MEAN,RE_CONF[1]])
-		spath = '/home/Hasegawa/Dthesis/water/output/'+model+'/bootstrap_'+model+'.npy'
+		spath = OUTPUT_ROOT+'/'+model+'/bootstrap_'+model+'.npy'
 		np.save(spath,sfile)
 		return sfile
 
@@ -60,8 +65,8 @@ class aphro():
 
 class gfdl():
 	def __init__(self):
-		self.month_list = ['may','jun','jul','aug','sep','oct']
-		self.ldt_list = ['leadtime_1month','leadtime_2month','leadtime_3month']
+		self.month_list = MONTH_LIST
+		self.ldt_list = LDT_LIST
 		self.model = 'GFDL'
 		self.resample_size = 10
 		self.styear = 1993
@@ -85,14 +90,7 @@ class gfdl():
 		return df_norm
 
 	def bootstrap(self,x):
-		conf_prob = np.array([self.lowlim,self.uplim])
-		re_mean = []
-		for i in range(self.repeats):
-			re = np.random.choice(x,self.resample_size,replace=True)
-			re_mean.append(np.mean(re))
-		re_mean_mean = np.mean(re_mean)
-		re_conf = np.percentile(re_mean,conf_prob*100)
-		return re_mean_mean,re_conf
+		return bootstrap_mean(x,self.resample_size,self.repeats,self.lowlim,self.uplim)
 
 	def exe(self):
 		for mon in self.month_list:
@@ -149,15 +147,7 @@ class bts():
 		return df_norm
 
 	def bootstrap(self,x):
-		conf_prob = np.array([self.lowlim,self.uplim])
-		re_mean = []
-		for i in range(self.repeats):
-			re = np.random.choice(x,self.resample_size,replace=True)
-			re_mean.append(np.mean(re))
-		re_mean_mean = np.mean(re_mean)
-		re_mean_std = np.std(re_mean)
-		re_conf = np.percentile(re_mean,conf_prob*100)
-		return re_mean_mean,re_conf
+		return bootstrap_mean(x,self.resample_size,self.repeats,self.lowlim,self.uplim)
 
 if __name__ == '__main__':
 	# -------------------------------------------------------------------------------------------------
@@ -165,8 +155,8 @@ if __name__ == '__main__':
 	#cmip_trans: model = 'cnn_trans', DIC = BTS,imp_trans(b), resample_size =15, if loop for may3lead 
 	#--------------------------------------------------------------------------------------------------
 	'''
-	month_list = ['may','jun','jul','aug','sep','oct']
-	ldt_list = ['leadtime_1month','leadtime_2month','leadtime_3month']
+	month_list = MONTH_LIST
+	ldt_list = LDT_LIST
 	model = 'cnn_trans'
 	resample_size = 15
 	for a in month_list:
@@ -182,7 +172,7 @@ if __name__ == '__main__':
 				en = DF_NORM.loc[c]
 				RE_MEAN_MEAN,RE_CONF = BTS.bootstrap(en)
 				sfile.append([RE_CONF[0],RE_MEAN_MEAN,RE_CONF[1]])
-			spath = '/home/Hasegawa/Dthesis/water/output/'+model+'/'+b+'/bootstrap_'+a+'.npy'
+			spath = OUTPUT_ROOT+'/'+model+'/'+b+'/bootstrap_'+a+'.npy'
 			print(spath)
 			np.save(spath,sfile)
 			

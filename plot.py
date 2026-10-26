@@ -1,15 +1,17 @@
-import os 
-import numpy as np 
+import os
+import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
+import seaborn as sns  # noqa: F401  kept because very old seaborn versions change the plot style on import
+
+MONTH_LIST = ['may','jun','jul','aug','sep','oct']
+LDT_LIST = ['leadtime_1month','leadtime_2month','leadtime_3month']
 
 class plot_gcm_test():
 	def __init__(self,month_n,ldt_n):
 		self.month_n = month_n
 		self.ldt_n = ldt_n
-		self.month_list = ['may','jun','jul','aug','sep','oct']
-		self.ldt_list = ['leadtime_1month','leadtime_2month','leadtime_3month']
+		self.month_list = MONTH_LIST
+		self.ldt_list = LDT_LIST
 		self.month = self.month_list[month_n]
 		self.ldt = self.ldt_list[ldt_n]
 		self.styear = 1993
@@ -62,8 +64,8 @@ class plot_gcm_test():
 		
 class plot_gcm_corr():
 	def __init__(self):
-		self.month_list = ['may','jun','jul','aug','sep','oct']
-		self.ldt_list = ['leadtime_1month','leadtime_2month','leadtime_3month']
+		self.month_list = MONTH_LIST
+		self.ldt_list = LDT_LIST
 		self.styear = 1993
 		self.enyear = 2016
 		self.xaxis = np.arange(self.styear,self.enyear)
@@ -92,13 +94,13 @@ class plot_gcm_corr():
 		return np.array(aphro_all),ecm_all,gfdl_all
 	
 	def gcm_corr(self):
-		aphro,gfdl,ecm = self.imp()
+		aphro,ecm,gfdl = self.imp()
 		aphro_dup = np.array([[x]*3 for x in aphro]).reshape(18,23)
 		r_gfdl = []
 		r_ecm = []
-		for gfdl_id,ecm_id,aphro_id in zip (gfdl,ecm,aphro_dup):
-			r_ecm.append(np.corrcoef(gfdl_id,aphro_id)[0,1])
-			r_gfdl.append(np.corrcoef(ecm_id,aphro_id)[0,1])
+		for ecm_id,gfdl_id,aphro_id in zip (ecm,gfdl,aphro_dup):
+			r_ecm.append(np.corrcoef(ecm_id,aphro_id)[0,1])
+			r_gfdl.append(np.corrcoef(gfdl_id,aphro_id)[0,1])
 		fig,ax = plt.subplots(figsize=(12,8))
 		label_ecm = ['ecmwf_1month','ecmwf_2month','ecmwf_3month']
 		label_gfdl = ['gfdl_1month','gfdl_2month','gfdl_3month']
@@ -117,8 +119,8 @@ class plot_gcm_corr():
 
 class plot_cnn_cmip():
 	def __init__(self):
-		self.month_list = ['may','jun','jul','aug','sep','oct']
-		self.ldt_list = ['leadtime_1month','leadtime_2month','leadtime_3month']
+		self.month_list = MONTH_LIST
+		self.ldt_list = LDT_LIST
 		self.styear = 1993
 		self.enyear = 2016
 		self.xaxis = np.arange(self.styear,self.enyear)
@@ -126,7 +128,6 @@ class plot_cnn_cmip():
 	
 	def imp(self):
 		load = lambda x: np.load(os.path.join(self.root,x))
-		norm = lambda x: (x-x.mean())/x.std()
 		row = []
 		for i in self.ldt_list:
 			column = []
@@ -159,8 +160,8 @@ class plot_cnn_cmip():
 
 class plot_cnn_trans():
 	def __init__(self):
-		self.month_list = ['may','jun','jul','aug','sep','oct']
-		self.ldt_list = ['leadtime_1month','leadtime_2month','leadtime_3month']
+		self.month_list = MONTH_LIST
+		self.ldt_list = LDT_LIST
 		self.styear = 1993
 		self.enyear = 2016
 		self.xaxis = np.arange(self.styear,self.enyear)
@@ -184,7 +185,6 @@ class plot_cnn_trans():
 		cnn_low  = []
 		cnn_middle = []
 		cnn_up = []
-		gfdl_all = []
 		for i in range(len(self.month_list)):
 			aphro_month = aphro[i+4::12]
 			aphro_norm = norm(aphro_month)
@@ -249,9 +249,9 @@ class plot_cnn_trans():
 		r_ecm = np.corrcoef(ecm1,aphro)[0,1]
 		r_cnn = np.corrcoef(cnn1,aphro)[0,1]
 		fig,ax = plt.subplots(figsize=(12,8))
-		ax.plot(self.xaxis,ecm1,marker='o',label='ecmwf('+np.str(round(r_ecm,2))+')',color='b')
+		ax.plot(self.xaxis,ecm1,marker='o',label='ecmwf('+str(round(r_ecm,2))+')',color='b')
 		ax.fill_between(self.xaxis,ecm0,ecm2,alpha=.3)
-		ax.plot(self.xaxis,cnn1,marker='^',label='CNN('+np.str(round(r_cnn,2))+')',color='r')
+		ax.plot(self.xaxis,cnn1,marker='^',label='CNN('+str(round(r_cnn,2))+')',color='r')
 		ax.fill_between(self.xaxis,cnn0,cnn2,alpha =.3)
 		ax.plot(self.xaxis,aphro,marker='s',label='observation',color='k')	
 		ax.legend(loc=0, prop={'size':30})
